@@ -7,16 +7,16 @@ def get_node_name(host, interface):
    return '%s-%s' % (host, interface)
 
 def run_command(command):
-    print(" ".join(command))
+    print("command:  ".join(command))
     p = subprocess.Popen(command, stdout=subprocess.PIPE, text=True)
     print(p.returncode)
-    while True:
-        out = p.stdout.read(1)
-        if (out == '' and p.poll() != None):
-            break
-        if (out != ''):
-            sys.stdout.write(out)
-            sys.stdout.flush()
+    #while True:
+    #    out = p.stdout.read(1)
+    #    if (out == '' and p.poll() != None):
+    #        break
+    #    if (out != ''):
+            #sys.stdout.write(out)
+            #sys.stdout.flush()
     if (p.returncode != 0):
         print("exiting with " + str(p.poll()))
         sys.exit(p.returncode)

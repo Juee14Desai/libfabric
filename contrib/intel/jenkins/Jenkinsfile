@@ -393,7 +393,8 @@ pipeline {
                             env
                             (
                                 cd /opt${env.WORKSPACE}/py_scripts/contrib/intel/jenkins/
-                                python3.7 runtests.py --prov=tcp --test=onecclgpu
+                                python3.7 runtests.py --prov=tcp --test=onecclgpu | tee -a /opt/jenkinsagent/jobs/jdesai/branches/main/builds/${env.BUILD_NUMBER}/text.txt
+
                                 echo "oneCCL-GPU completed."
                             )
                           """
@@ -410,7 +411,7 @@ pipeline {
                             env
                             (
                                 cd /opt${env.WORKSPACE}/py_scripts/contrib/intel/jenkins/
-                                python3.7 runtests.py --prov=shm --device='ze'
+                                python3.7 runtests.py --prov=shm --device='ze' | tee -a /opt/jenkinsagent/jobs/jdesai/branches/main/builds/${env.BUILD_NUMBER}/text.txt
                                 echo "ze-shm completed."
                             )
                           """
@@ -422,6 +423,12 @@ pipeline {
     }
 
     post {
+        always {
+            withEnv(['PATH+EXTRA=/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin:$PYTHONPATH']) {
+                //junit '/opt/jenkinsagent/jobs/jdesai/branches/main/builds/${env.BUILD_NUMBER}/build.xml'
+                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '', reportFiles: 'index.html', reportName: 'HTML Report', reportTitles: ''])
+            }
+        }
         cleanup {
             withEnv(['PATH+EXTRA=/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin:$PYTHONPATH']) {
                 sh "rm -rf '${env.CI_INSTALL_DIR}/${env.JOB_NAME}/${env.BUILD_NUMBER}/ci_middlewares'"
