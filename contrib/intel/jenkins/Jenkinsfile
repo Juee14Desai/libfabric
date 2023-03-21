@@ -110,6 +110,9 @@ pipeline {
           steps {
             withEnv(['PATH+EXTRA=/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin/:$PYTHONPATH']) {
               sh """
+                cd $HOME
+                cov01 -1
+                cd -
                 echo "-----------------------------------------------------"
                 echo "Copy build dirs."
                 python3.7 ${env.WORKSPACE}/${SCRIPT_LOCATION}/build.py --build_item=builddir
