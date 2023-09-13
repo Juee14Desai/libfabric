@@ -227,5 +227,17 @@ def dmabuftests(hw, core, hosts, mode, user_env, log_file, util):
         print(f"Skipping {rundmabuftests.testname} as execute condition fails")
     print('-------------------------------------------------------------------')
 
+def feature_coverage(hw, core, hosts, mode, user_env, log_file, util):
+    runfeaturecoverage = tests.FeatureCoverage(jobname=jbname,buildno=bno,
+                                               testname="Feature Coverage", core_prov=core,
+                                               hw=hw, fabric=fab, hosts=hosts,
+                                               ofi_build_mode=mode, user_env=user_env,
+                                               log_file=log_file, util_prov=util)
+    print('-------------------------------------------------------------------')
+    if (runfeaturecoverage.execute_condn):
+        print(f"Running Feature Coverage Tool")
+        runfeaturecoverage.execute_cmd()
+        print('---------------------------------------------------------------')
+
 if __name__ == "__main__":
     pass

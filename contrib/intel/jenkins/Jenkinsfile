@@ -3,7 +3,7 @@ import groovy.transform.Field
 properties([disableConcurrentBuilds(abortPrevious: true)])
 @Field def DO_RUN=true
 @Field def TARGET="main"
-@Field def SCRIPT_LOCATION="upstream/libfabric/contrib/intel/jenkins"
+@Field def SCRIPT_LOCATION="source/libfabric/contrib/intel/jenkins"
 @Field def RELEASE=false
 @Field def BUILD_MODES=["reg", "dbg", "dl"]
 @Field def PYTHON_VERSION="3.9"
@@ -18,6 +18,7 @@ def run_python(version, command, output=null) {
 
 def slurm_batch(partition, node_num, output, command) {
   
+  echo "Entered slurm batch"
   try {
     sh """sbatch --partition=${partition} -N ${node_num} \
           --wait -o ${output} --open-mode=append \
@@ -60,6 +61,7 @@ def run_fabtests(stage_name, hw, partition, node_num, prov, util=null,
 
 def run_middleware(providers, stage_name, test, hw, partition, node_num,
                    mpi=null, imb_grp=null) {
+  echo "entered run_middleware"
   def base_cmd = "python3.9 ${RUN_LOCATION}/runtests.py --test=${test} --build_hw=${hw}"
   def opts = ""
   def prefix = "${env.LOG_DIR}/${stage_name}_"
@@ -75,8 +77,10 @@ def run_middleware(providers, stage_name, test, hw, partition, node_num,
   if (env.WEEKLY.toBoolean())
     base_cmd = "${base_cmd} --weekly=${env.WEEKLY}"
     
+  echo "$base_cmd"
   for (prov in providers) {
     if (prov[1]) {
+      
       echo "Running ${prov[0]}-${prov[1]} ${stage_name}"
       opts = "--prov=${prov[0]} --util=${prov[1]}"
       output = "${prefix}${prov[0]}-${prov[1]}${suffix}"
@@ -86,6 +90,8 @@ def run_middleware(providers, stage_name, test, hw, partition, node_num,
       output = "${prefix}${prov[0]}${suffix}"
     }
 
+    echo "log file = ${output}"
+    echo "Reached slurm_batch"
     slurm_batch("${partition}", "${node_num}", "${output}",
                 "${base_cmd} ${opts}")
   }
@@ -388,7 +394,7 @@ pipeline {
     stage ('parallel-builds') {
       when { equals expected: true, actual: DO_RUN }
       parallel {
-        stage ('build-water') {
+        /*stage ('build-water') {
           steps {
             script {
               slurm_build(BUILD_MODES, "water", "water", "water")
@@ -452,7 +458,7 @@ pipeline {
               }
             }
           }
-        }
+        }*/
         stage ('build-gpu') {
           agent {
             node {
@@ -479,7 +485,7 @@ pipeline {
     stage('parallel-tests') {
       when { equals expected: true, actual: DO_RUN }
       parallel {
-        stage('MPI_verbs-rxm_IMB') {
+        /*stage('MPI_verbs-rxm_IMB') {
           steps {
             script {
               dir (RUN_LOCATION) {
@@ -662,7 +668,7 @@ pipeline {
           steps {
             script {
               dir (RUN_LOCATION) {
-                run_middleware([["tcp", "rxm"]/*, ["psm3", null]*/], "oneCCL",
+                run_middleware([["tcp", "rxm"]*//*, ["psm3", null]*//*], "oneCCL",
                                "oneccl", "grass", "bulbasaur", "2")
               }
             }
@@ -694,7 +700,7 @@ pipeline {
             }
           }
         }
-         stage('daos_verbs') {
+        stage('daos_verbs') {
           agent { node { label 'daos_verbs' } }
           options { skipDefaultCheckout() }
           steps {
@@ -707,8 +713,22 @@ pipeline {
               }
             }
           }
+        }*/
+	stage('Feature_Coverage') {
+	  agent { node { label 'ze' } }
+	  options { skipDefaultCheckout() }
+          steps {
+            script {
+	      echo "Running feature coverage stage"
+              dir (RUN_LOCATION) {
+		echo "In run location"
+                run_middleware([["tcp", "rxm"]], "Feature_Coverage", "featurecoverage",
+			       "gpu", "fabrics-ci", "2")
+              }
+            }
+          }
         }
-        stage ('DMABUF-Tests') {
+        /*stage ('DMABUF-Tests') {
           agent { node { label 'ze' } }
           options { skipDefaultCheckout() }
           steps {
@@ -752,15 +772,15 @@ pipeline {
               }
             }
           }
-        }
+        }*/
       }
     }
     stage ('Summary') {
       when { equals expected: true, actual: DO_RUN }
       steps {
         script {
-          gather_logs("${env.DAOS_ADDR}", "${env.DAOS_KEY}", "${env.LOG_DIR}",
-                      "${env.LOG_DIR}")
+          /*gather_logs("${env.DAOS_ADDR}", "${env.DAOS_KEY}", "${env.LOG_DIR}",
+                      "${env.LOG_DIR}")*/
           gather_logs("${env.ZE_ADDR}", "${env.ZE_KEY}", "${env.LOG_DIR}",
                       "${env.LOG_DIR}")
 
@@ -796,10 +816,10 @@ pipeline {
       dir ("${DELETE_LOCATION}/middlewares") { deleteDir() }
     }
     cleanup {
-      node ('daos_head') {
+      /*node ('daos_head') {
         dir("${env.WORKSPACE}") { deleteDir() }
         dir("${env.WORKSPACE}@tmp") { deleteDir() }
-      }
+      }*/
       node ('ze') {
         dir("${env.WORKSPACE}") { deleteDir() }
         dir("${env.WORKSPACE}@tmp") { deleteDir() }

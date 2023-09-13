@@ -1174,3 +1174,34 @@ class DMABUFTest(Test):
                     else:
                         print("-------------- TEST FAILED ---------------")
                         sys.exit(f"Exiting with returncode: {RC}")
+
+class FeatureCoverage(Test):
+
+    def __init__(self, jobname, buildno, testname, hw, core_prov, fabric,
+                 hosts, ofi_build_mode, user_env, log_file, util_prov=None):
+
+        super().__init__(jobname, buildno, testname, hw, core_prov, fabric,
+                         hosts, ofi_build_mode, user_env, log_file,
+                         None, util_prov)
+        self.feature_coverage_path = f'{self.custom_workspace}/source/libfabric/fabtests/scripts/feature_coverage'
+        self.feature_coverage_bin_path = f'{self.custom_workspace}/gpu/reg/bin'
+    @property
+    def execute_condn(self):
+        return True
+
+    @property
+    def cmd(self):
+        return f"python3.9 {self.feature_coverage_path}/run_feature_coverage.py -n {self.server},{self.client}"
+
+    def execute_cmd(self):
+        curdir=os.getcwd()
+        os.chdir(self.feature_coverage_path)
+        command = self.cmd
+        outputcmd = shlex.split(command)
+        common.run_command(outputcmd)
+        print("Reached here\n")
+        command = f"python3.9 {self.feature_coverage_path}/gen_report.py -m {self.feature_coverage_path}/master_features.json -d {self.feature_coverage_path}/feature_coverage_logs -v 2"
+        outputcmd = shlex.split(command)
+        common.run_command(outputcmd)
+        os.chdir(curdir)
+

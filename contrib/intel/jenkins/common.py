@@ -16,7 +16,7 @@ def run_command(command):
         out = p.stdout.read(1)
         if (out == '' and p.poll() != None):
             break
-        if (out != ''):
+        if (out != ''): 
             sys.stdout.write(out)
             sys.stdout.flush()
 

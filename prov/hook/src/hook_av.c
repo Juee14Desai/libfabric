@@ -118,7 +118,10 @@ int hook_av_open(struct fid_domain *domain, struct fi_av_attr *attr,
 	myav->av.fid.ops = &hook_fid_ops;
 	myav->av.ops = &hook_av_ops;
 
-	ret = fi_av_open(dom->hdomain, attr, &myav->hav, &myav->av.fid);
+	if (attr->flags & FI_PEER)
+		ret = fi_av_open(dom->hdomain, attr, &myav->hav, context);
+	else
+		ret = fi_av_open(dom->hdomain, attr, &myav->hav, &myav->av.fid);
 	if (ret)
 		free(myav);
 	else

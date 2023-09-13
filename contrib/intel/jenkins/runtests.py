@@ -27,7 +27,8 @@ parser.add_argument('--ofi_build_mode', help="specify the build configuration",\
 parser.add_argument('--test', help="specify test to execute", \
                     choices = ['all', 'shmem', 'IMB', 'osu', 'oneccl', \
                                'mpichtestsuite', 'fabtests', 'onecclgpu', \
-                               'fi_info', 'daos', 'multinode', 'dmabuf'])
+                               'fi_info', 'daos', 'multinode', 'dmabuf', \
+                               'featurecoverage'])
 
 parser.add_argument('--imb_grp', help="IMB test group 1:[MPI1, P2P], \
                     2:[EXT, IO], 3:[NBC, RMA, MT]", choices=['1', '2', '3'])
@@ -149,6 +150,10 @@ if(args_core):
 
     if (run_test == 'all' or run_test == 'dmabuf'):
         run.dmabuftests(build_hw, args_core, hosts, ofi_build_mode,
+                        user_env, log_file, args_util)
+
+    if (run_test == 'all' or run_test == 'featurecoverage'):
+        run.feature_coverage(build_hw, args_core, hosts, ofi_build_mode,
                         user_env, log_file, args_util)
 else:
     print("Error : Specify a core provider to run tests")
