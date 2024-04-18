@@ -162,7 +162,7 @@ def checkout_ci_resources() {
       rm -rf ${env.WORKSPACE}/ci_resources && mkdir ${env.WORKSPACE}/ci_resources
     fi
 
-    git clone ${env.CI_RESOURCES} ${env.WORKSPACE}/ci_resources
+    git clone -b master ${env.JDESAI_CI_RESOURCES} ${env.WORKSPACE}/ci_resources
 
   """
 }
@@ -175,7 +175,7 @@ def checkout_ci() {
       rm -rf ${env.WORKSPACE}/ci && mkdir ${env.WORKSPACE}/ci
     fi
 
-    git clone --recurse-submodules ${env.CI} ${env.WORKSPACE}/ci
+    git clone -b master --recurse-submodules ${env.JDESAI_CI} ${env.WORKSPACE}/ci
   """
 }
 
@@ -427,7 +427,7 @@ pipeline {
             }
           }
         }
-        stage ('build-water') {
+        /*stage ('build-water') {
           environment {
             build_type = "water"
           }
@@ -466,7 +466,7 @@ pipeline {
                          )
             }
           }
-        }
+        }*/
         stage ('build-electric') {
           environment {
             build_type = "electric"
@@ -477,7 +477,7 @@ pipeline {
             }
           }
         }
-        stage ('build-ucx') {
+        /*stage ('build-ucx') {
           steps {
             script {
               slurm_build(BUILD_MODES, "totodile", "ucx", "ucx")
@@ -541,13 +541,13 @@ pipeline {
               }
             }
           }
-        }
+        }*/
       }
     }
     stage('parallel-tests') {
       when { equals expected: true, actual: DO_RUN }
       parallel {
-        stage ('CI_MPI_verbs-rxm_IMB') {
+        /*stage ('CI_MPI_verbs-rxm_IMB') {
           environment {
             build_type = "water"
           }
@@ -736,19 +736,19 @@ pipeline {
               }
             }
           }
-        }
+        }*/
 	      stage ('oneCCL') {
           steps {
             script {
               dir (RUN_LOCATION) {
-		            run_middleware([["verbs", null]], "oneCCL",
+		            /*run_middleware([["verbs", null]], "oneCCL",
                                "oneccl", "water", "squirtle,totodile", "2")
 		            run_middleware([["shm", null]], "oneCCL",
 			                         "oneccl", "grass", "bulbasaur", "1")
 		            run_middleware([["psm3", null]], "oneCCL",
 			                         "oneccl", "water", "squirtle", "2")
 		            run_middleware([["tcp", null]], "oneCCL",
-			                         "oneccl", "grass", "bulbasaur", "2")
+			                         "oneccl", "grass", "bulbasaur", "2")*/
                 run_middleware([["shm", null]], "oneCCL_DSA",
                                "oneccl", "electric", "pikachu", "1", null, null,
                                """CCL_ATL_SHM=1 FI_SHM_DISABLE_CMA=1 \
@@ -757,13 +757,13 @@ pipeline {
             }
           }
         }
-        stage ('oneCCL-GPU-v3') {
+        /*stage ('oneCCL-GPU-v3') {
           agent { node { label 'ze' } }
           options { skipDefaultCheckout() }
           steps {
             script {
               dir (RUN_LOCATION) {
-		            run_middleware([["tcp", null]], "oneCCL-GPU-v3", "onecclgpu",
+		            run_middleware([["ofi\';\'shm", null]], "oneCCL-GPU-v3", "onecclgpu",
 			                         "gpu", "fabrics-ci", "2", null, null,
                                "FI_HMEM_DISABLE_P2P=1")
 		            run_middleware([["psm3", null]], "oneCCL-GPU-v3", "onecclgpu",
@@ -772,6 +772,9 @@ pipeline {
 		            run_middleware([["verbs", null]], "oneCCL-GPU-v3", "onecclgpu",
                                "gpu", "fabrics-ci", "2", null, null,
                                "FI_HMEM_DISABLE_P2P=1")
+			    run_middleware([["tcp", null]], "oneCCL-GPU-v3", "onecclgpu",
+			       "gpu", "fabrics-ci", "2", null, null,
+			       "FI_HMEM_DISABLE_P2P=1")
               }
             }
           }
@@ -876,7 +879,7 @@ pipeline {
               }
             }
           }
-        }
+        }*/
       }
     }
     stage ('Summary') {
