@@ -162,7 +162,7 @@ def checkout_ci_resources() {
       rm -rf ${env.WORKSPACE}/ci_resources && mkdir ${env.WORKSPACE}/ci_resources
     fi
 
-    git clone ${env.CI_RESOURCES} ${env.WORKSPACE}/ci_resources
+    git clone -b master ${env.JDESAI_CI_RESOURCES} ${env.WORKSPACE}/ci_resources
 
   """
 }
@@ -175,7 +175,7 @@ def checkout_ci() {
       rm -rf ${env.WORKSPACE}/ci && mkdir ${env.WORKSPACE}/ci
     fi
 
-    git clone --recurse-submodules ${env.CI} ${env.WORKSPACE}/ci
+    git clone -b master --recurse-submodules ${env.JDESAI_CI} ${env.WORKSPACE}/ci
   """
 }
 
@@ -427,7 +427,7 @@ pipeline {
             }
           }
         }
-        stage ('build-water') {
+        /*stage ('build-water') {
           environment {
             build_type = "water"
           }
@@ -520,7 +520,7 @@ pipeline {
               }
             }
           }
-        }
+        }*/
         stage ('build-gpu') {
           agent {
             node {
@@ -547,7 +547,7 @@ pipeline {
     stage('parallel-tests') {
       when { equals expected: true, actual: DO_RUN }
       parallel {
-        stage ('CI_MPI_verbs-rxm_IMB') {
+        /*stage ('CI_MPI_verbs-rxm_IMB') {
           environment {
             build_type = "water"
           }
@@ -756,27 +756,30 @@ pipeline {
               }
             }
           }
-        }
+        }*/
         stage ('oneCCL-GPU-v3') {
           agent { node { label 'ze' } }
           options { skipDefaultCheckout() }
           steps {
             script {
               dir (RUN_LOCATION) {
-		            run_middleware([["tcp", null]], "oneCCL-GPU-v3", "onecclgpu",
-			                         "gpu", "fabrics-ci", "2", null, null,
-                               "FI_HMEM_DISABLE_P2P=1")
 		            run_middleware([["psm3", null]], "oneCCL-GPU-v3", "onecclgpu",
-			                         "gpu", "fabrics-ci", "2", null, null,
+			                         "gpu", "torchic", "1", null, null,
                                "FI_HMEM_DISABLE_P2P=1")
 		            run_middleware([["verbs", null]], "oneCCL-GPU-v3", "onecclgpu",
-                               "gpu", "fabrics-ci", "2", null, null,
+                               "gpu", "torchic", "1", null, null,
                                "FI_HMEM_DISABLE_P2P=1")
+			    run_middleware([["tcp", null]], "oneCCL-GPU-v3", "onecclgpu",
+			       "gpu", "torchic", "1", null, null,
+			       "FI_HMEM_DISABLE_P2P=1")
+			    run_middleware([["shm", null]], "oneCCL-GPU-v3", "onecclgpu",
+			       "gpu", "torchic", "1", null, null,
+			       "FI_HMEM_DISABLE_P2P=1")
               }
             }
           }
         }
-        stage('daos_tcp') {
+        /*stage('daos_tcp') {
           agent { node { label 'daos_tcp' } }
           options { skipDefaultCheckout() }
           steps {
@@ -813,9 +816,9 @@ pipeline {
                 dmabuf_output = "${LOG_DIR}/DMABUF-Tests_verbs-rxm_dmabuf"
                 cmd = """ python3.9 runtests.py --test=dmabuf \
                            --prov=verbs --util=rxm --build_hw=gpu"""
-                slurm_batch("fabrics-ci", "1", "${dmabuf_output}_1_reg",
+                slurm_batch("torchic", "1", "${dmabuf_output}_1_reg",
                             "${cmd}")
-                slurm_batch("fabrics-ci", "2", "${dmabuf_output}_2_reg",
+                slurm_batch("torchic", "2", "${dmabuf_output}_2_reg",
                             "${cmd}")
               }
             }
@@ -876,7 +879,7 @@ pipeline {
               }
             }
           }
-        }
+        }*/
       }
     }
     stage ('Summary') {
